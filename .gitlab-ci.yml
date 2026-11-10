@@ -1,0 +1,31 @@
+image: gradle:jdk17
+
+before_script:
+  - GRADLE_USER_HOME="$(pwd)/.gradle"
+  - export GRADLE_USER_HOME
+
+stages:
+  - build
+  - test
+
+build_application:
+  stage: build
+  script:
+    - chmod +x ./gradlew
+    - ./gradlew build
+  artifacts:
+    paths:
+      - app/build/libs/*.jar
+  allow_failure: false
+
+black_box_testing:
+  stage: test
+  script:
+    - java -jar NATT.jar -nc https://gitlab.com/ap5vs/test-config/im-server-config/-/raw/main/test-config-4.yaml?ref_type=heads
+  artifacts:
+    when: always
+    paths:
+      - test_report.html
+  dependencies:
+    - build_application
+  allow_failure: false
